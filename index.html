@@ -157,6 +157,26 @@ p{margin:0 0 16px}
 .fechas .lnk{font-family:'Josefin Sans',sans-serif;font-size:13px;letter-spacing:.18em;text-transform:uppercase;font-weight:400;color:var(--ambar);white-space:nowrap}
 .fechas .nada{margin-top:34px;padding:28px 0;border-top:1px solid rgba(42,35,56,.14);border-bottom:1px solid rgba(42,35,56,.14);color:var(--gris);font-size:19px}
 @media(max-width:640px){.fechas .fe{grid-template-columns:64px 1fr;gap:16px;padding:18px 0}.fechas .dia b{font-size:32px}.fechas .tit{font-size:18px}.fechas .lnk{grid-column:2;font-size:12px}}
+/* comunidad: formulario para quienes llegan (21/10) */
+.comu{background:var(--noche);color:#fff}
+.comu .eti{color:var(--ambar2)}
+.comu .bajada{color:#D8CFE8}
+.cform{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:34px}
+.cform label{display:flex;flex-direction:column;gap:7px;font-family:'Josefin Sans',sans-serif;font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--lila2)}
+.cform input{font:300 17px/1.3 'Jost',sans-serif;color:#fff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:14px 16px;outline:none;transition:border-color .2s,background .2s}
+.cform input::placeholder{color:#9C93B3}
+.cform input:focus{border-color:var(--ambar);background:rgba(255,255,255,.09)}
+.cform .hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+.cform .pie2{grid-column:1/-1;display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-top:6px}
+.cform .pie2 p{margin:0;font-size:14px;color:#9C93B3;flex:1;min-width:220px}
+.cform button{border:0;cursor:pointer}
+.cform button:disabled{opacity:.6;cursor:default}
+.cok{display:none;margin-top:34px;padding:26px 28px;border-radius:16px;background:rgba(233,161,91,.12);border:1px solid rgba(233,161,91,.35)}
+.cok.on{display:block}
+.cok p{margin:0;color:#fff}
+.cerr{grid-column:1/-1;margin:0;color:var(--ambar2);font-size:15px;display:none}
+.cerr.on{display:block}
+@media(max-width:640px){.cform{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -284,6 +304,24 @@ p{margin:0 0 16px}
   </div>
 </section>
 
+<section class="comu" id="comunidad" data-b="15">
+  <div class="wrap" style="max-width:860px">
+    <p class="eti" data-e="112">Comunidad</p>
+    <h2 data-e="113">Que la música llegue a tu ciudad</h2>
+    <p class="bajada" data-e="114">Dejanos tus datos y te avisamos cuando haya un concierto cerca tuyo, antes que a nadie.</p>
+    <form class="cform" id="cform" novalidate>
+      <label><span data-e="115">Nombre</span><input name="nombre" autocomplete="name" placeholder="Tu nombre" required></label>
+      <label><span data-e="116">Ciudad</span><input name="ciudad" autocomplete="address-level2" placeholder="Dónde vivís"></label>
+      <label><span data-e="117">WhatsApp</span><input name="whatsapp" type="tel" inputmode="tel" autocomplete="tel" placeholder="+54 9 11 1234 5678"></label>
+      <label><span data-e="118">Correo</span><input name="email" type="email" inputmode="email" autocomplete="email" placeholder="tu@correo.com"></label>
+      <div class="hp" aria-hidden="true"><input name="web" tabindex="-1" autocomplete="off"></div>
+      <p class="cerr" id="cerr"></p>
+      <div class="pie2"><button class="btn pri" type="submit" id="cbtn" data-e="119">Quiero enterarme</button><p data-e="120">Solo para avisarte de conciertos y novedades. Nada de spam.</p></div>
+    </form>
+    <div class="cok" id="cok"><p data-e="121">¡Gracias! Ya estás en la lista. Te avisamos cuando la música llegue cerca tuyo.</p></div>
+  </div>
+</section>
+
 <section class="bio" data-b="12">
   <div class="wrap dos">
     <div class="foto"><img src="img/bio.jpg" alt="Hernán Onírico" loading="lazy" data-e="79"></div>
@@ -327,6 +365,24 @@ p{margin:0 0 16px}
   <p class="pie" data-e="109">Hernán Onírico · Música de luz</p>
 </section>
 
+<script>
+(function(){
+  var f=document.getElementById('cform'); if(!f) return;
+  f.addEventListener('submit',function(e){ e.preventDefault(); if(document.getElementById('srBar')) return;
+    var v=function(n){ return (f.elements[n].value||'').trim(); }, err=document.getElementById('cerr'), b=document.getElementById('cbtn');
+    var msg=function(t){ err.textContent=t; err.classList.toggle('on',!!t); };
+    if(v('web')) return;
+    if(!v('nombre')) return msg('Contanos tu nombre.');
+    if(!v('whatsapp')&&!v('email')) return msg('Dejanos tu WhatsApp o tu correo para poder avisarte.');
+    if(v('email')&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v('email'))) return msg('Revisá el correo, parece que le falta algo.');
+    msg(''); b.disabled=true;
+    fetch('https://fdrxsjphlvvwwknnrjtx.supabase.co/rest/v1/rpc/web_contacto_alta',{method:'POST',headers:{'apikey':'sb_publishable_kT7McM9Dt7xP44IlFotsLA_8-b8q_17','Content-Type':'application/json'},
+      body:JSON.stringify({p_slug:'hernan-onirico',p_nombre:v('nombre'),p_ciudad:v('ciudad'),p_whatsapp:v('whatsapp'),p_email:v('email'),p_pagina:location.hostname+location.pathname})})
+      .then(function(r){ return r.json(); }).then(function(j){ if(j&&j.ok){ f.style.display='none'; document.getElementById('cok').classList.add('on'); } else { b.disabled=false; msg('No se pudo enviar. Probá de nuevo en un rato.'); } })
+      .catch(function(){ b.disabled=false; msg('No se pudo enviar. Probá de nuevo en un rato.'); });
+  });
+})();
+</script>
 <script src="https://semillaredes.com/assets/idioma.js" defer></script>
 <script src="https://vm.semillaredes.com/web/editor.js" defer></script>
 </body>
